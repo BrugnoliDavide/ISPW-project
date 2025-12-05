@@ -12,7 +12,14 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.12.1</junit.version>
+
+        <sonar.organization>mobileprogrammingproject</sonar.organization>
     </properties>
+
+
+
+
+
 
     <dependencies>
         <dependency>

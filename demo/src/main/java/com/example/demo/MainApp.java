@@ -47,7 +47,7 @@ public class MainApp extends Application {
         VBox.setMargin(signInBtn, new Insets(20, 0, 0, 0));
         signInBtn.setMaxWidth(Double.MAX_VALUE);
 
-        // --- QUI C'È LA LOGICA DI NAVIGAZIONE ---
+        // implementare il login "vero"
         signInBtn.setOnAction(e -> {
             String role = userField.getText().trim().toLowerCase(); // Rimuove spazi e converte in minuscolo
 
@@ -59,7 +59,7 @@ public class MainApp extends Application {
 
                 case "manager":
                     System.out.println("Navigazione verso: MANAGER");
-                    changeScreen("Interfaccia Manager (Placeholder)");
+                    mainScene.setRoot(ManagerView.getView());
                     break;
 
                 case "cucina":
