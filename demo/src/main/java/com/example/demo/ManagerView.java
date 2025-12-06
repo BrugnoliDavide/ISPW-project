@@ -53,7 +53,9 @@ public class ManagerView {
         Button btnFinance = createDashboardButton("Financial");
 
         // Azioni fittizie (Placeholder)
-        btnMenu.setOnAction(e -> System.out.println("Navigazione -> Menu Ristorante"));
+        btnMenu.setOnAction(e -> {System.out.println("Navigazione -> Menu Ristorante");
+        btnMenu.getScene().setRoot(MenuView.getView());
+        });
         btnFinance.setOnAction(e -> System.out.println("Navigazione -> Dashboard Finanziaria"));
 
         bottomBox.getChildren().addAll(btnMenu, btnFinance);

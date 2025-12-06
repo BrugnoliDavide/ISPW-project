@@ -1,4 +1,4 @@
-package com.example.demo; // Assicurati che il package sia corretto
+package com.example.demo;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -83,10 +83,15 @@ public class MainApp extends Application {
         // Caricamento CSS (Ricorda lo slash!)
         mainScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
 
-        primaryStage.setTitle("Ristorante App");
+        primaryStage.setTitle("Restaurant Manger");
         primaryStage.setScene(mainScene);
-        primaryStage.setResizable(false);
+        //modificare qui sotto per decidere logiche di ridimensionabilità
+        primaryStage.setResizable(true);
         primaryStage.show();
+
+        //trovare dimensioni minime ottimali
+        primaryStage.setMinWidth(400);  // Larghezza minima
+        primaryStage.setMinHeight(500); //Larghezza massima
     }
 
     /**
