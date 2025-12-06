@@ -76,7 +76,7 @@ public class MenuView {
         listContent.setPadding(new Insets(10, 20, 20, 20)); // Margini interni
 
         // Recuperiamo i dati dal MockDB divisi per categorie
-        Map<String, List<MenuProduct>> datiMenu = MockDatabase.getMenuByCategories();
+        Map<String, List<MenuProduct>> datiMenu = DatabaseService.getMenuByCategories();
 
         // Ciclo per ogni Categoria (es. prima "Cocktail", poi "Bibite")
         for (String categoria : datiMenu.keySet()) {
@@ -113,13 +113,13 @@ public class MenuView {
         // Colonna Sinistra: Nome e Dettagli
         VBox infoBox = new VBox(5);
 
-        Label nameLbl = new Label(p.nome);
+        Label nameLbl = new Label(p.getNome());
         nameLbl.setStyle("-fx-font-size: 16px; -fx-text-fill: #333;");
 
         // Calcolo quantità dal DB
-        long qtaVenduta = MockDatabase.getQuantitySold(p.nome);
+        long qtaVenduta = DatabaseService.getQuantitySold(p.getNome());
 
-        Label detailsLbl = new Label(String.format("%.0f€ | Q.ta: %d", p.prezzoVendita, qtaVenduta));
+        Label detailsLbl = new Label(String.format("%.0f€ | Q.ta: %d", p.getPrezzoVendita(), qtaVenduta));
         detailsLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #777;");
 
         infoBox.getChildren().addAll(nameLbl, detailsLbl);
@@ -131,7 +131,7 @@ public class MenuView {
         // Colonna Destra: I tre puntini (...)
         Label dots = new Label("...");
         dots.setStyle("-fx-font-size: 20px; -fx-text-fill: #555; -fx-padding: 0 10 0 0;");
-        dots.setOnMouseClicked(e -> System.out.println("Click opzioni su: " + p.nome));
+        dots.setOnMouseClicked(e -> System.out.println("Click opzioni su: " + p.getNome()));
 
         row.getChildren().addAll(infoBox, spacer, dots);
         return row;

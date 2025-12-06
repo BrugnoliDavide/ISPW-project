@@ -3,6 +3,10 @@ module com.example.demo {
     requires javafx.fxml;
     requires javafx.web;
 
+    //utili per usare il db
+    requires java.sql;
+    requires org.postgresql.jdbc;
+
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
     requires net.synedra.validatorfx;
