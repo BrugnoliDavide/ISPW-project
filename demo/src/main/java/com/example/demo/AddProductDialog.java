@@ -28,6 +28,8 @@ public class AddProductDialog {
         window.setTitle(isEditMode ? "Modifica Prodotto" : "Aggiungi Prodotto");
         window.setMinWidth(300);
 
+        MainApp.setLogo(window);
+
         VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
         layout.setStyle("-fx-background-color: white;");

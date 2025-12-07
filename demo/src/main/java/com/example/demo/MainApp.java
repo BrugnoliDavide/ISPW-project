@@ -86,6 +86,9 @@ public class MainApp extends Application {
         primaryStage.setTitle("Restaurant Manger");
         primaryStage.setScene(mainScene);
         //modificare qui sotto per decidere logiche di ridimensionabilità
+
+        setLogo(primaryStage);
+
         primaryStage.setResizable(true);
         primaryStage.show();
 
@@ -126,4 +129,21 @@ public class MainApp extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+
+
+// Metodo statico per assegnare il logo a qualsiasi finestra (Stage)
+    public static void setLogo(Stage stage) {
+        try {
+            // Carica l'immagine dalla cartella resources
+            // Nota: lo slash "/" iniziale è fondamentale
+            javafx.scene.image.Image icon = new javafx.scene.image.Image(
+                    MainApp.class.getResourceAsStream("/logo.png")
+            );
+            stage.getIcons().add(icon);
+        } catch (Exception e) {
+            System.out.println("Impossibile caricare il logo. Controlla che 'logo.png' sia in resources.");
+        }
+    }
+
 }
