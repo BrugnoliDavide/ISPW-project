@@ -56,6 +56,16 @@ public class MenuView {
         // Icona Più (Add)
         StackPane btnAdd = createIcon("M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z");
         HBox.setMargin(btnAdd, new Insets(0, 0, 0, 15)); // Un po' di margine a sinistra del +
+        // AZIONE: Apre la finestra di dialogo
+        btnAdd.setOnMouseClicked(e -> {
+            System.out.println("Apro finestra aggiunta..."); // Debug
+            AddProductDialog.display();
+
+            // Ricarica la vista per mostrare il nuovo prodotto
+            btnAdd.getScene().setRoot(MenuView.getView());
+        });
+
+
 
         titleRow.getChildren().addAll(lblTitle, spacer, btnSearch, btnAdd);
 

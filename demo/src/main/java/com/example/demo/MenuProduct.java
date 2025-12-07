@@ -13,12 +13,22 @@ public class MenuProduct {
     // --- COSTRUTTORE 1: COMPLETO (6 Argomenti) ---
     // Da usare in DatabaseService quando leggi i dati completi
     public MenuProduct(int id, String nome, String tipologia, double prezzo, double costo, String allergeni) {
-        this.id = id;
+        this.id = 0; // 0 indica che il DB deve ancora assegnare un ID vero
         this.nome = nome;
         this.tipologia = tipologia;
         this.prezzoVendita = prezzo;
         this.costoRealizzazione = costo;
-        this.allergeni = allergeni; // Gestiamo anche gli allergeni ora
+        this.allergeni = allergeni;
+    }
+
+    //costruttore da 5 argomenti
+    public MenuProduct(String nome, String tipologia, double prezzo, double costo, String allergeni) {
+        this.id = 0; // 0 o -1 indica che è un prodotto nuovo non ancora nel DB
+        this.nome = nome;
+        this.tipologia = tipologia;
+        this.prezzoVendita = prezzo;
+        this.costoRealizzazione = costo;
+        this.allergeni = allergeni;
     }
 
     // --- COSTRUTTORE 2: SEMPLIFICATO (4 Argomenti) ---

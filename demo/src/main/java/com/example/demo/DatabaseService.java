@@ -58,4 +58,31 @@ public class DatabaseService {
     public static long getQuantitySold(String nomeProdotto) {
         return 0; // Placeholder
     }
+
+    // Metodo per inserire un nuovo prodotto
+    public static boolean addProduct(MenuProduct p) {
+        String sql = "INSERT INTO menu_items (nome, tipologia, prezzo_vendita, costo_realizzazione, allergeni) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // Riempiamo i punti interrogativi (?) con i dati
+            pstmt.setString(1, p.getNome());
+            pstmt.setString(2, p.getTipologia());
+            pstmt.setDouble(3, p.getPrezzoVendita());
+            pstmt.setDouble(4, p.getCostoRealizzazione());
+            pstmt.setString(5, p.getAllergeni());
+
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0; // Se è > 0, ha funzionato
+
+        } catch (SQLException e) {
+            System.out.println("ERRORE INSERIMENTO: " + e.getMessage());
+            return false; // Qualcosa è andato storto (es. nome duplicato)
+        }
+    }
 }
+
+
+
+
