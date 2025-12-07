@@ -11,9 +11,10 @@ public class MenuProduct {
     private String allergeni;
 
     // --- COSTRUTTORE 1: COMPLETO (6 Argomenti) ---
-    // Da usare in DatabaseService quando leggi i dati completi
+    // Da usare in DatabaseService quando LEGGI un prodotto esistente
     public MenuProduct(int id, String nome, String tipologia, double prezzo, double costo, String allergeni) {
-        this.id = 0; // 0 indica che il DB deve ancora assegnare un ID vero
+        // *** CORREZIONE QUI SOTTO ***
+        this.id = id; // Salviamo l'ID vero che arriva dal Database!
         this.nome = nome;
         this.tipologia = tipologia;
         this.prezzoVendita = prezzo;
@@ -21,9 +22,10 @@ public class MenuProduct {
         this.allergeni = allergeni;
     }
 
-    //costruttore da 5 argomenti
+    // --- COSTRUTTORE 2: PER NUOVI PRODOTTI (5 Argomenti) ---
+    // Da usare quando l'utente crea un prodotto nuovo (l'ID non esiste ancora)
     public MenuProduct(String nome, String tipologia, double prezzo, double costo, String allergeni) {
-        this.id = 0; // 0 o -1 indica che è un prodotto nuovo non ancora nel DB
+        this.id = 0; // Qui va bene 0, perché il DB lo genererà dopo l'INSERT
         this.nome = nome;
         this.tipologia = tipologia;
         this.prezzoVendita = prezzo;
@@ -31,15 +33,15 @@ public class MenuProduct {
         this.allergeni = allergeni;
     }
 
-    // --- COSTRUTTORE 2: SEMPLIFICATO (4 Argomenti) ---
-    // Utile se hai ancora vecchio codice (es. MockDatabase) che non usa ID e Allergeni
+    // --- COSTRUTTORE 3: SEMPLIFICATO (4 Argomenti) ---
+    // Legacy / Test
     public MenuProduct(String nome, String tipologia, double prezzo, double costo) {
-        this.id = 0; // ID provvisorio
+        this.id = 0;
         this.nome = nome;
         this.tipologia = tipologia;
         this.prezzoVendita = prezzo;
         this.costoRealizzazione = costo;
-        this.allergeni = ""; // Stringa vuota di default
+        this.allergeni = "";
     }
 
     // --- GETTER E SETTER ---
@@ -50,7 +52,6 @@ public class MenuProduct {
     public double getCostoRealizzazione() { return costoRealizzazione; }
     public String getAllergeni() { return allergeni; }
 
-    // Utile per debug (stampa l'oggetto invece dell'indirizzo di memoria)
     @Override
     public String toString() {
         return nome + " (" + tipologia + ")";

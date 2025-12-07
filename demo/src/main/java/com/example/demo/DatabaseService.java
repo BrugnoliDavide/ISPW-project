@@ -81,6 +81,99 @@ public class DatabaseService {
             return false; // Qualcosa è andato storto (es. nome duplicato)
         }
     }
+
+    // 1. AGGIORNAMENTO (Richiede un oggetto con ID valido)
+    public static boolean updateProduct(MenuProduct p) {
+        String sql = "UPDATE menu_items SET nome = ?, tipologia = ?, prezzo_vendita = ?, costo_realizzazione = ?, allergeni = ? WHERE id = ?";
+
+        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(URL, USER, PASS);
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, p.getNome());
+            pstmt.setString(2, p.getTipologia());
+            pstmt.setDouble(3, p.getPrezzoVendita());
+            pstmt.setDouble(4, p.getCostoRealizzazione());
+            pstmt.setString(5, p.getAllergeni());
+            pstmt.setInt(6, p.getId()); // FONDAMENTALE: Usa l'ID per trovare la riga
+
+            return pstmt.executeUpdate() > 0;
+
+        } catch (java.sql.SQLException e) {
+            System.out.println("ERRORE UPDATE: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // 2. ELIMINAZIONE
+// Metodo ELIMINAZIONE con DEBUG
+    public static boolean deleteProduct(int id) {
+        System.out.println("--- INIZIO TENTATIVO ELIMINAZIONE ---");
+        System.out.println("ID ricevuto da eliminare: " + id);
+
+        if (id <= 0) {
+            System.out.println("ERRORE: L'ID non è valido (è 0 o minore). Impossibile eliminare dal DB.");
+            return false;
+        }
+
+        String sql = "DELETE FROM menu_items WHERE id = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, id);
+
+            // Eseguiamo
+            int rowsAffected = pstmt.executeUpdate();
+
+            System.out.println("Righe eliminate realmente dal DB: " + rowsAffected);
+
+            if (rowsAffected > 0) {
+                System.out.println("SUCCESSO: Prodotto eliminato.");
+                return true;
+            } else {
+                System.out.println("FALLIMENTO: Nessuna riga trovata con questo ID. Il prodotto esiste nel DB?");
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("ERRORE SQL GRAVE: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    // Metodo per ottenere la lista delle categorie esistenti
+    public static List<String> getAllCategories() {
+        List<String> categories = new ArrayList<>();
+        // DISTINCT serve a non avere duplicati (es. se ho 10 Primi, voglio la scritta "Primi" una volta sola)
+        String sql = "SELECT DISTINCT tipologia FROM menu_items ORDER BY tipologia";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                categories.add(rs.getString("tipologia"));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Se il DB è vuoto, restituiamo almeno delle categorie base per non lasciare l'utente smarrito
+        if (categories.isEmpty()) {
+            categories.add("Primi");
+            categories.add("Secondi");
+            categories.add("Bibite");
+        }
+
+        return categories;
+    }
+
+
+
+
 }
 
 

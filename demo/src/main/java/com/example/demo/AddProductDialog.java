@@ -1,7 +1,6 @@
 package com.example.demo;
 
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -10,108 +9,89 @@ import javafx.stage.Stage;
 
 public class AddProductDialog {
 
+    // MODALITA' AGGIUNTA
     public static void display() {
-        Stage window = new Stage();
+        showDialog(null);
+    }
 
-        // 1. Configurazione Finestra
-        window.initModality(Modality.APPLICATION_MODAL); // Blocca la finestra sotto finché non chiudi questa
-        window.setTitle("Aggiungi Nuovo Prodotto");
+    // MODALITA' MODIFICA
+    public static void displayEdit(MenuProduct productToEdit) {
+        showDialog(productToEdit);
+    }
+
+    // Logica Unica
+    private static void showDialog(MenuProduct productToEdit) {
+        boolean isEditMode = (productToEdit != null);
+
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle(isEditMode ? "Modifica Prodotto" : "Aggiungi Prodotto");
         window.setMinWidth(300);
 
-        VBox layout = new VBox(15);
+        VBox layout = new VBox(10);
         layout.setPadding(new Insets(20));
-        layout.setAlignment(Pos.CENTER_LEFT);
-        // Stile simile al resto dell'app
-        layout.setStyle("-fx-background-color: white; -fx-border-color: #DDD; -fx-border-width: 2;");
+        layout.setStyle("-fx-background-color: white;");
 
-        // --- 2. I Campi di Input ---
+        // Campi
+        TextField txtName = new TextField(isEditMode ? productToEdit.getNome() : "");
+        txtName.setPromptText("Nome");
 
-        // Nome
-        Label lblName = new Label("Nome Prodotto:");
-        TextField txtName = new TextField();
-        txtName.setPromptText("Es. Tiramisù");
-
-        // Tipologia (Usiamo una ComboBox per evitare errori di battitura)
-        Label lblType = new Label("Tipologia:");
         ComboBox<String> cmbType = new ComboBox<>();
-        cmbType.getItems().addAll("Primi", "Secondi", "Contorni", "Bibite", "Cocktail", "Dolci");
-        cmbType.setValue("Primi"); // Valore default
+        cmbType.getItems().addAll(DatabaseService.getAllCategories());
+        cmbType.setEditable(true);
+        if (isEditMode) cmbType.setValue(productToEdit.getTipologia());
+        else if (!cmbType.getItems().isEmpty()) cmbType.getSelectionModel().selectFirst();
 
-        // Prezzo Vendita
-        Label lblPrice = new Label("Prezzo Vendita (€):");
-        TextField txtPrice = new TextField();
-        txtPrice.setPromptText("Es. 12.50");
+        TextField txtPrice = new TextField(isEditMode ? String.valueOf(productToEdit.getPrezzoVendita()) : "");
+        txtPrice.setPromptText("Prezzo Vendita");
 
-        // Costo Realizzazione
-        Label lblCost = new Label("Costo Realizzazione (€):");
-        TextField txtCost = new TextField();
-        txtCost.setPromptText("Es. 4.00");
+        TextField txtCost = new TextField(isEditMode ? String.valueOf(productToEdit.getCostoRealizzazione()) : "");
+        txtCost.setPromptText("Costo Realizzazione");
 
-        // Allergeni
-        Label lblAllergens = new Label("Allergeni (Opzionale):");
-        TextField txtAllergens = new TextField();
-        txtAllergens.setPromptText("Es. Latte, Uova");
+        TextField txtAllergens = new TextField(isEditMode ? productToEdit.getAllergeni() : "");
+        txtAllergens.setPromptText("Allergeni");
 
-        // --- 3. Bottone Salva ---
-        Button btnSave = new Button("Salva nel Menu");
-        btnSave.setStyle("-fx-background-color: #2B2B2B; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
-        btnSave.setMaxWidth(Double.MAX_VALUE); // Largo quanto la finestra
+        Button btnSave = new Button(isEditMode ? "Salva Modifiche" : "Aggiungi al Menu");
+        btnSave.setStyle("-fx-background-color: #2B2B2B; -fx-text-fill: white; -fx-cursor: hand;");
+        btnSave.setMaxWidth(Double.MAX_VALUE);
 
-        // Azione del bottone
         btnSave.setOnAction(e -> {
-            if (isValid(txtName, txtPrice, txtCost)) {
+            try {
+                String nome = txtName.getText();
+                String tipo = cmbType.getValue();
+                double prezzo = Double.parseDouble(txtPrice.getText().replace(",", "."));
+                double costo = Double.parseDouble(txtCost.getText().replace(",", "."));
+                String all = txtAllergens.getText();
 
-                // Creiamo l'oggetto temporaneo (ID è 0 perché lo decide il DB)
-                MenuProduct newProduct = new MenuProduct(
-                        txtName.getText(),
-                        cmbType.getValue(),
-                        Double.parseDouble(txtPrice.getText().replace(",", ".")), // Gestiamo sia la virgola che il punto
-                        Double.parseDouble(txtCost.getText().replace(",", ".")),
-                        txtAllergens.getText() // Usa il nuovo costruttore completo (o settalo dopo)
-                );
-
-                // Chiamata al Database
-                boolean success = DatabaseService.addProduct(newProduct);
-
-                if (success) {
-                    showAlert(Alert.AlertType.INFORMATION, "Successo", "Prodotto aggiunto correttamente!");
-                    window.close(); // Chiudi la finestra
-                    // Opzionale: Ricaricare la lista del menu sotto (lo vedremo dopo)
+                boolean success;
+                if (isEditMode) {
+                    // MODIFICA: Mantieni l'ID originale!
+                    MenuProduct updated = new MenuProduct(productToEdit.getId(), nome, tipo, prezzo, costo, all);
+                    success = DatabaseService.updateProduct(updated);
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Errore", "Impossibile salvare.\nForse il nome esiste già?");
+                    // AGGIUNTA: Nuovo prodotto
+                    MenuProduct nuovo = new MenuProduct(nome, tipo, prezzo, costo, all);
+                    success = DatabaseService.addProduct(nuovo);
                 }
+
+                if (success) window.close();
+                else System.out.println("Errore salvataggio DB");
+
+            } catch (NumberFormatException ex) {
+                System.out.println("Errore numeri: " + ex.getMessage());
             }
         });
 
-        layout.getChildren().addAll(lblName, txtName, lblType, cmbType, lblPrice, txtPrice, lblCost, txtCost, lblAllergens, txtAllergens, btnSave);
+        layout.getChildren().addAll(
+                new Label("Nome:"), txtName,
+                new Label("Tipologia:"), cmbType,
+                new Label("Prezzo (€):"), txtPrice,
+                new Label("Costo (€):"), txtCost,
+                new Label("Allergeni:"), txtAllergens,
+                new Label(""), btnSave
+        );
 
-        Scene scene = new Scene(layout);
-        window.setScene(scene);
-        window.showAndWait(); // Aspetta che venga chiusa prima di tornare al codice principale
-    }
-
-    // Validazione base
-    private static boolean isValid(TextField name, TextField price, TextField cost) {
-        if (name.getText().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Dati Mancanti", "Inserisci il nome del prodotto.");
-            return false;
-        }
-        try {
-            Double.parseDouble(price.getText().replace(",", "."));
-            Double.parseDouble(cost.getText().replace(",", "."));
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.WARNING, "Formato Errato", "Prezzo e Costo devono essere numeri.");
-            return false;
-        }
-        return true;
-    }
-
-    // Helper per mostrare messaggi
-    private static void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        window.setScene(new Scene(layout));
+        window.showAndWait();
     }
 }
