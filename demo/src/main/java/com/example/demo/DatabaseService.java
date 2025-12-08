@@ -55,9 +55,6 @@ public class DatabaseService {
     // 3. Metodo Quantità (PER ORA FITTIZIO)
     // Dato che non abbiamo ancora creato la tabella 'vendite' su Docker,
     // restituiamo 0 per evitare errori. Lo implementeremo nel prossimo step.
-    public static long getQuantitySold(String nomeProdotto) {
-        return 0; // Placeholder
-    }
 
     // Metodo per inserire un nuovo prodotto
     public static boolean addProduct(MenuProduct p) {
@@ -171,6 +168,115 @@ public class DatabaseService {
         return categories;
     }
 
+
+
+
+    // Metodo Transazionale per creare Ordine + Righe
+    public static boolean createOrder(List<OrderItem> items, Integer tavolo, String note) {
+        if (items.isEmpty()) return false;
+
+        String sqlOrder = "INSERT INTO orders (username, tavolo, note) VALUES (?, ?, ?)";
+        String sqlItem = "INSERT INTO order_items (order_id, menu_item_id, quantita, prezzo_vendita_snapshot, costo_realizzazione_snapshot) VALUES (?, ?, ?, ?, ?)";
+
+        Connection conn = null;
+        PreparedStatement pstmtOrder = null;
+        PreparedStatement pstmtItem = null;
+
+        try {
+            conn = DriverManager.getConnection(URL, USER, PASS);
+
+            // 1. DISABILITIAMO L'AUTO-COMMIT (Inizia la transazione manuale)
+            conn.setAutoCommit(false);
+
+            // --- A. INSERIMENTO TESTATA ORDINE ---
+            // Return_Generated_Keys ci serve per sapere l'ID dell'ordine appena creato (es. Ordine #50)
+            pstmtOrder = conn.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
+            pstmtOrder.setString(1, "Manager"); // Username fisso per ora
+            if (tavolo != null) pstmtOrder.setInt(2, tavolo);
+            else pstmtOrder.setNull(2, java.sql.Types.INTEGER);
+            pstmtOrder.setString(3, note);
+
+            int affectedRows = pstmtOrder.executeUpdate();
+            if (affectedRows == 0) throw new SQLException("Creazione ordine fallita.");
+
+            // Recuperiamo l'ID generato
+            int orderId = 0;
+            try (ResultSet generatedKeys = pstmtOrder.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    orderId = generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Fallito recupero ID ordine.");
+                }
+            }
+
+            // --- B. INSERIMENTO RIGHE (ITEMS) ---
+            pstmtItem = conn.prepareStatement(sqlItem);
+
+            for (OrderItem item : items) {
+                pstmtItem.setInt(1, orderId); // Usiamo l'ID appena recuperato
+                pstmtItem.setInt(2, item.getProduct().getId()); // ID dal Menu
+                pstmtItem.setInt(3, item.getQuantita());
+                pstmtItem.setDouble(4, item.getPrezzoSnapshot()); // Prezzo congelato
+                pstmtItem.setDouble(5, item.getCostoSnapshot());  // Costo congelato
+
+                // Aggiungiamo al "batch" (mucchio di query da eseguire insieme)
+                pstmtItem.addBatch();
+            }
+
+            // Eseguiamo tutte le righe insieme
+            pstmtItem.executeBatch();
+
+            // 2. COMMIT (Se siamo arrivati qui, salviamo tutto definitivamente)
+            conn.commit();
+            System.out.println("Ordine #" + orderId + " creato con successo con " + items.size() + " righe.");
+            return true;
+
+        } catch (SQLException e) {
+            // 3. ROLLBACK (Se c'è un errore, annulliamo tutto come se non fosse mai successo)
+            if (conn != null) {
+                try {
+                    System.out.println("Errore rilevato! Annullamento operazione (Rollback)...");
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            // Chiudiamo tutto
+            try { if (pstmtItem != null) pstmtItem.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (pstmtOrder != null) pstmtOrder.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (conn != null) conn.setAutoCommit(true); conn.close(); } catch (SQLException e) { e.printStackTrace(); }
+        }
+    }
+
+
+
+
+
+    // Metodo aggiornato per contare le vendite usando la nuova tabella
+    public static long getQuantitySold(String nomeProdotto) {
+        // JOIN tra order_items e menu_items per trovare le righe giuste tramite il nome
+        String sql = "SELECT SUM(oi.quantita) FROM order_items oi " +
+                "JOIN menu_items mi ON oi.menu_item_id = mi.id " +
+                "WHERE mi.nome = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASS);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, nomeProdotto);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getLong(1); // Ritorna la somma (es. 127)
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
 
 

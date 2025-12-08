@@ -54,7 +54,8 @@ public class MainApp extends Application {
             switch (role) {
                 case "cameriere":
                     System.out.println("Navigazione verso: CAMERIERE");
-                    changeScreen("Interfaccia Cameriere (Placeholder)");
+
+                    mainScene.setRoot(WaiterView.getView());
                     break;
 
                 case "manager":
